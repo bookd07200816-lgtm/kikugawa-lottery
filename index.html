@@ -1,0 +1,1205 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#9e1117">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="菊川抽選">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>菊川展示場 入居者感謝祭 ガラガラ抽選</title>
+  <style>
+:root {
+  color-scheme: light;
+  --red: #9e1117;
+  --deep-red: #6f0c12;
+  --gold: #d9a62e;
+  --gold-bright: #ffd766;
+  --white: #fffaf1;
+  --ink: #241513;
+  --muted: #563c35;
+  --line: rgba(118, 30, 22, 0.18);
+  --shadow: 0 22px 70px rgba(72, 8, 13, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 215, 102, 0.45), transparent 28%),
+    radial-gradient(circle at 84% 18%, rgba(255, 250, 241, 0.75), transparent 24%),
+    linear-gradient(135deg, #7b0b13 0%, #b71924 38%, #fff4db 38.2%, #fffaf1 100%);
+  overflow-x: hidden;
+}
+
+button {
+  font: inherit;
+  border: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.app-shell {
+  width: min(1200px, 100%);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: max(18px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 4px 20px;
+  color: var(--white);
+}
+
+.eyebrow {
+  margin: 0 0 5px;
+  color: var(--gold-bright);
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  font-weight: 900;
+  text-shadow: 0 2px 8px rgba(45, 5, 8, 0.32);
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-size: clamp(1.85rem, 4.4vw, 3.35rem);
+  line-height: 1.1;
+  letter-spacing: 0;
+  text-shadow: 0 3px 12px rgba(45, 5, 8, 0.36);
+}
+
+.top-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.icon-button,
+.sound-button,
+.reset-button,
+.history-section button {
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 8px;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.icon-button {
+  width: 48px;
+  font-size: 1.4rem;
+}
+
+.sound-button {
+  padding: 0 16px;
+  font-weight: 900;
+  font-size: 1rem;
+}
+
+.lottery-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(310px, 380px);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.stage,
+.side-panel {
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  border-radius: 8px;
+  background: rgba(255, 250, 241, 0.92);
+  box-shadow: var(--shadow);
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(280px, 1fr) auto auto;
+  place-items: center;
+  gap: 16px;
+  min-height: 710px;
+  padding: clamp(16px, 3vw, 28px);
+  overflow: hidden;
+}
+
+.stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 0 48%, rgba(217, 166, 46, 0.12) 48% 52%, transparent 52%),
+    linear-gradient(0deg, transparent 0 48%, rgba(158, 17, 23, 0.08) 48% 52%, transparent 52%);
+  pointer-events: none;
+}
+
+.wheel-wrap {
+  position: relative;
+  width: min(78svh, 90vw, 610px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+
+#wheelCanvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  filter: drop-shadow(0 18px 28px rgba(68, 11, 13, 0.28));
+  transform: rotate(0deg);
+  transition: transform 4.8s cubic-bezier(0.12, 0.78, 0.09, 1);
+}
+
+.pointer {
+  position: absolute;
+  z-index: 4;
+  top: -2px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 22px solid transparent;
+  border-right: 22px solid transparent;
+  border-top: 52px solid var(--deep-red);
+  border-bottom: 0;
+  filter: drop-shadow(0 4px 0 rgba(255, 215, 102, 0.95));
+}
+
+.wheel-center {
+  position: absolute;
+  z-index: 3;
+  width: 27%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  border: 8px solid var(--gold-bright);
+  border-radius: 50%;
+  color: var(--white);
+  background: linear-gradient(145deg, #8f0e15, #c71f2b);
+  box-shadow: 0 12px 28px rgba(64, 11, 13, 0.28), inset 0 0 18px rgba(255, 255, 255, 0.2);
+}
+
+.wheel-center span {
+  font-size: clamp(0.72rem, 1.8vw, 1.05rem);
+  font-weight: 900;
+  color: var(--gold-bright);
+  line-height: 1.1;
+}
+
+.wheel-center strong {
+  font-size: clamp(0.95rem, 3.2vw, 1.65rem);
+  line-height: 1.08;
+  text-align: center;
+}
+
+.result-panel {
+  position: relative;
+  width: min(720px, 100%);
+  min-height: 142px;
+  padding: 18px 20px;
+  border: 2px solid rgba(217, 166, 46, 0.55);
+  border-radius: 8px;
+  text-align: center;
+  background: linear-gradient(180deg, #ffffff, #fff1cb);
+}
+
+.result-kicker {
+  margin-bottom: 6px;
+  color: var(--red);
+  font-weight: 900;
+  font-size: clamp(1rem, 2.5vw, 1.22rem);
+}
+
+.result-panel h2 {
+  margin-bottom: 8px;
+  font-size: clamp(2rem, 6vw, 3.65rem);
+  line-height: 1.02;
+  color: var(--deep-red);
+}
+
+.result-panel p:last-child {
+  margin-bottom: 0;
+  color: #3e2923;
+  font-size: clamp(1.05rem, 3vw, 1.45rem);
+  line-height: 1.35;
+  font-weight: 900;
+}
+
+.primary-actions {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(180px, 330px) minmax(120px, 170px);
+  gap: 12px;
+  width: min(520px, 100%);
+}
+
+.spin-button {
+  min-height: 72px;
+  border-radius: 8px;
+  color: var(--white);
+  background: linear-gradient(180deg, #e2b23f, #a90f19 58%, #740a11);
+  box-shadow: 0 12px 0 #4e070c, 0 22px 32px rgba(72, 8, 13, 0.3);
+  font-size: clamp(1.45rem, 4.6vw, 2rem);
+  font-weight: 950;
+}
+
+.spin-button:active {
+  transform: translateY(5px);
+  box-shadow: 0 7px 0 #4e070c, 0 15px 22px rgba(72, 8, 13, 0.25);
+}
+
+.spin-button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.reset-button {
+  color: var(--deep-red);
+  background: #fff8e8;
+  border-color: rgba(158, 17, 23, 0.22);
+  font-weight: 900;
+  font-size: 1.08rem;
+}
+
+.side-panel {
+  display: grid;
+  grid-template-rows: auto minmax(210px, 1fr);
+  gap: 14px;
+  padding: 18px;
+  min-height: 710px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.section-heading h2 {
+  margin-bottom: 0;
+  color: var(--deep-red);
+  font-size: 1.38rem;
+  line-height: 1.15;
+}
+
+.section-heading span,
+.history-section button {
+  color: var(--muted);
+  font-weight: 900;
+  font-size: 0.96rem;
+}
+
+.history-section button {
+  min-height: 36px;
+  padding: 0 10px;
+  color: var(--deep-red);
+  background: #fff4db;
+  border-color: rgba(158, 17, 23, 0.18);
+}
+
+.inventory-list {
+  display: grid;
+  gap: 10px;
+}
+
+.inventory-item {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr) 78px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.rank-badge {
+  display: grid;
+  place-items: center;
+  min-height: 50px;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--red);
+  font-weight: 950;
+  font-size: 1.18rem;
+  line-height: 1;
+}
+
+.inventory-name {
+  min-width: 0;
+}
+
+.inventory-name strong {
+  display: block;
+  font-size: 1.08rem;
+  line-height: 1.32;
+}
+
+.inventory-name span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.28;
+  font-weight: 800;
+}
+
+.count {
+  min-width: 70px;
+  text-align: center;
+  color: var(--deep-red);
+  font-size: 2rem;
+  line-height: 0.95;
+  font-weight: 950;
+}
+
+.count span {
+  display: block;
+  font-size: 0.78rem;
+  line-height: 1.05;
+  color: var(--muted);
+}
+
+.sold-out {
+  opacity: 0.48;
+}
+
+.sold-out .count {
+  font-size: 0.9rem;
+}
+
+.history-list {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  height: min(46svh, 430px);
+  margin: 0;
+  padding: 0 4px 0 26px;
+  overflow: auto;
+}
+
+.history-list li {
+  padding: 11px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.76);
+  line-height: 1.45;
+  font-size: 1rem;
+}
+
+.history-list strong {
+  color: var(--deep-red);
+}
+
+.celebration-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  top: -18px;
+  width: 10px;
+  height: 16px;
+  border-radius: 2px;
+  animation: fall var(--duration, 1600ms) linear forwards;
+}
+
+.flash {
+  position: fixed;
+  inset: 0;
+  animation: flash 900ms ease-out forwards;
+  background: radial-gradient(circle, rgba(255, 236, 132, 0.92), rgba(255, 215, 102, 0.36) 36%, transparent 68%);
+}
+
+@keyframes fall {
+  0% {
+    transform: translate3d(0, -20px, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--drift, 20px), 110svh, 0) rotate(760deg);
+    opacity: 0.9;
+  }
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 940px) {
+  .lottery-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .stage,
+  .side-panel {
+    min-height: auto;
+  }
+
+  .side-panel {
+    grid-template-rows: auto auto;
+  }
+
+  .history-list {
+    height: 260px;
+  }
+}
+
+@media (max-width: 620px) {
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .top-actions,
+  .primary-actions {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .top-actions {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+  }
+
+  .wheel-wrap {
+    width: min(92vw, 520px);
+  }
+
+  .inventory-item {
+    grid-template-columns: 72px minmax(0, 1fr) 68px;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .inventory-name strong {
+    font-size: 0.98rem;
+  }
+
+  .count {
+    min-width: 62px;
+    font-size: 1.72rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 620px) {
+  .app-shell {
+    padding-top: 10px;
+  }
+
+  .topbar {
+    padding-bottom: 10px;
+  }
+
+  .lottery-layout {
+    grid-template-columns: minmax(0, 1fr) 330px;
+  }
+
+  .stage {
+    grid-template-columns: minmax(280px, 56svh) minmax(260px, 1fr);
+    grid-template-rows: auto auto;
+    min-height: calc(100svh - 96px);
+  }
+
+  .wheel-wrap {
+    grid-row: 1 / 3;
+    width: min(56svh, 52vw);
+  }
+
+  .result-panel,
+  .primary-actions {
+    width: 100%;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">セキスイハイム東海</p>
+        <h1>菊川展示場 入居者感謝祭</h1>
+      </div>
+      <div class="top-actions">
+        <button id="fullscreenButton" class="icon-button" type="button" aria-label="全画面表示" title="全画面表示">⛶</button>
+        <button id="soundButton" class="sound-button" type="button">音声を有効化</button>
+      </div>
+    </header>
+
+    <main class="lottery-layout">
+      <section class="stage" aria-label="抽選ルーレット">
+        <div class="wheel-wrap">
+          <div class="pointer" aria-hidden="true"></div>
+          <canvas id="wheelCanvas" width="720" height="720" aria-label="抽選ルーレット"></canvas>
+          <div class="wheel-center">
+            <span>ガラポン</span>
+            <strong>菊川感謝祭</strong>
+          </div>
+        </div>
+        <div class="result-panel" id="resultPanel" aria-live="polite">
+          <p class="result-kicker">本日の抽選</p>
+          <h2 id="resultTitle">準備できています</h2>
+          <p id="resultPrize">ボタンを押して抽選を開始してください</p>
+        </div>
+        <div class="primary-actions">
+          <button id="spinButton" class="spin-button" type="button">抽選スタート</button>
+          <button id="resetButton" class="reset-button" type="button">リセット</button>
+        </div>
+      </section>
+
+      <aside class="side-panel" aria-label="景品残数と履歴">
+        <section class="inventory-section">
+          <div class="section-heading">
+            <h2>景品残数</h2>
+            <span id="remainingTotal">合計 0本</span>
+          </div>
+          <div id="inventoryList" class="inventory-list"></div>
+        </section>
+
+        <section class="history-section">
+          <div class="section-heading">
+            <h2>抽選履歴</h2>
+            <button id="clearHistoryButton" type="button">履歴のみ削除</button>
+          </div>
+          <ol id="historyList" class="history-list"></ol>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <div id="celebrationLayer" class="celebration-layer" aria-hidden="true"></div>
+  <script>
+const STORAGE_KEY = "kikugawa-lottery-v1";
+const POINTER_DEGREE = 0;
+
+const initialPrizes = [
+  {
+    id: "special",
+    rank: "特賞",
+    title: "エディオン商品券またはカインズ商品券 5,000円分",
+    shortTitle: "商品券 5,000円",
+    count: 3,
+    color: "#d8a21f",
+    textColor: "#2a1705",
+    speech: "おめでとうございます！特賞です！",
+    effect: "special",
+    wheelCopies: 1,
+  },
+  {
+    id: "first",
+    rank: "1等",
+    title: "お米5kg",
+    shortTitle: "お米 5kg",
+    note: "原価目安 3,500円",
+    count: 3,
+    color: "#b70f1a",
+    textColor: "#fffaf1",
+    speech: "おめでとうございます！1等です！",
+    effect: "first",
+    wheelCopies: 2,
+  },
+  {
+    id: "second",
+    rank: "2等",
+    title: "スターバックスカード 1,000円",
+    shortTitle: "スタバカード",
+    count: 6,
+    color: "#ffffff",
+    textColor: "#8b0e16",
+    speech: "おめでとうございます！2等です！",
+    effect: "color",
+    wheelCopies: 3,
+  },
+  {
+    id: "third",
+    rank: "3等",
+    title: "ベイシアグループ商品券またはエディオン商品券 1,000円",
+    shortTitle: "商品券 1,000円",
+    count: 10,
+    color: "#f4d36a",
+    textColor: "#4b140e",
+    speech: "おめでとうございます！3等の商品券です！",
+    effect: "color",
+    wheelCopies: 4,
+  },
+  {
+    id: "fourth",
+    rank: "4等",
+    title: "お菓子詰め合わせ",
+    shortTitle: "お菓子",
+    count: 27,
+    color: "#cf2630",
+    textColor: "#fffaf1",
+    speech: "おめでとうございます！4等です！",
+    effect: "normal",
+    wheelCopies: 6,
+  },
+  {
+    id: "thanks",
+    rank: "参加賞",
+    title: "ポケットティッシュ・ウェットティッシュ",
+    shortTitle: "参加賞",
+    count: null,
+    color: "#fff2cf",
+    textColor: "#6f0c12",
+    speech: "ご参加ありがとうございます！",
+    effect: "normal",
+    wheelCopies: 8,
+  },
+];
+
+const canvas = document.querySelector("#wheelCanvas");
+const ctx = canvas.getContext("2d");
+const spinButton = document.querySelector("#spinButton");
+const resetButton = document.querySelector("#resetButton");
+const soundButton = document.querySelector("#soundButton");
+const fullscreenButton = document.querySelector("#fullscreenButton");
+const resultTitle = document.querySelector("#resultTitle");
+const resultPrize = document.querySelector("#resultPrize");
+const resultPanel = document.querySelector("#resultPanel");
+const inventoryList = document.querySelector("#inventoryList");
+const historyList = document.querySelector("#historyList");
+const remainingTotal = document.querySelector("#remainingTotal");
+const celebrationLayer = document.querySelector("#celebrationLayer");
+const clearHistoryButton = document.querySelector("#clearHistoryButton");
+
+let state = loadState();
+let rotation = 0;
+let audioContext = null;
+let spinNoise = null;
+let spinMusic = null;
+let spinning = false;
+let preferredVoice = null;
+
+function createInitialState() {
+  return {
+    prizes: initialPrizes.map((prize) => ({ ...prize, remaining: prize.count })),
+    history: [],
+  };
+}
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!saved || !Array.isArray(saved.prizes)) return createInitialState();
+    const merged = createInitialState();
+    merged.prizes = merged.prizes.map((prize) => {
+      const savedPrize = saved.prizes.find((item) => item.id === prize.id);
+      return savedPrize ? { ...prize, remaining: savedPrize.remaining } : prize;
+    });
+    merged.history = Array.isArray(saved.history) ? saved.history : [];
+    return merged;
+  } catch {
+    return createInitialState();
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function availablePrizes() {
+  return state.prizes.filter((prize) => prize.remaining === null || prize.remaining > 0);
+}
+
+function weightedPool() {
+  const pool = [];
+  for (const prize of availablePrizes()) {
+    const weight = prize.remaining === null ? 54 : Math.max(1, prize.remaining);
+    for (let i = 0; i < weight; i += 1) pool.push(prize);
+  }
+  return pool;
+}
+
+function choosePrize() {
+  const pool = weightedPool();
+  return pool[Math.floor(Math.random() * pool.length)] || state.prizes[state.prizes.length - 1];
+}
+
+function wheelSegments() {
+  const active = availablePrizes();
+  const segments = [];
+  for (const prize of active) {
+    const copies = prize.remaining === null ? prize.wheelCopies : Math.min(prize.wheelCopies, Math.max(1, prize.remaining));
+    for (let i = 0; i < copies; i += 1) segments.push(prize);
+  }
+  return staggerSegments(segments);
+}
+
+function staggerSegments(segments) {
+  const result = [];
+  const buckets = [...new Set(segments.map((segment) => segment.id))]
+    .map((id) => segments.filter((segment) => segment.id === id));
+  while (buckets.some((bucket) => bucket.length)) {
+    buckets.sort((a, b) => b.length - a.length);
+    for (const bucket of buckets) {
+      const item = bucket.shift();
+      if (item) result.push(item);
+    }
+  }
+  return result;
+}
+
+function drawWheel() {
+  const segments = wheelSegments();
+  const size = canvas.width;
+  const center = size / 2;
+  const radius = center - 18;
+  const angle = (Math.PI * 2) / segments.length;
+
+  ctx.clearRect(0, 0, size, size);
+  ctx.save();
+  ctx.translate(center, center);
+
+  segments.forEach((segment, index) => {
+    const start = index * angle - Math.PI / 2;
+    const end = start + angle;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radius, start, end);
+    ctx.closePath();
+    ctx.fillStyle = segment.color;
+    ctx.fill();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = "#8e151a";
+    ctx.stroke();
+
+    ctx.save();
+    ctx.rotate(start + angle / 2);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    ctx.fillStyle = segment.textColor;
+    ctx.strokeStyle = segment.textColor === "#fffaf1" ? "rgba(67, 8, 12, 0.62)" : "rgba(255, 255, 255, 0.86)";
+    ctx.lineWidth = 9;
+    ctx.font = "900 54px system-ui, sans-serif";
+    strokeAndFillText(segment.rank, radius * 0.62, 0);
+    ctx.restore();
+  });
+
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.lineWidth = 16;
+  ctx.strokeStyle = "#ffd766";
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, 0, radius - 18, 0, Math.PI * 2);
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "rgba(255,255,255,0.8)";
+  ctx.stroke();
+  ctx.restore();
+}
+
+function wrapCanvasText(text, x, y, maxWidth, lineHeight) {
+  const words = text.replace(" ", "\n").replace("または", "\n").split(/\s+|\n/);
+  let line = "";
+  let lineCount = 0;
+  for (const word of words) {
+    const testLine = line ? `${line}${word}` : word;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      strokeAndFillText(line, x, y + lineCount * lineHeight);
+      line = word;
+      lineCount += 1;
+      if (lineCount >= 2) break;
+    } else {
+      line = testLine;
+    }
+  }
+  if (line && lineCount < 3) strokeAndFillText(line, x, y + lineCount * lineHeight);
+}
+
+function strokeAndFillText(text, x, y) {
+  ctx.strokeText(text, x, y);
+  ctx.fillText(text, x, y);
+}
+
+function renderInventory() {
+  inventoryList.innerHTML = "";
+  let finiteTotal = 0;
+  state.prizes.forEach((prize) => {
+    if (typeof prize.remaining === "number") finiteTotal += prize.remaining;
+    const item = document.createElement("div");
+    item.className = `inventory-item${prize.remaining === 0 ? " sold-out" : ""}`;
+    item.innerHTML = `
+      <div class="rank-badge" style="background:${prize.color};color:${prize.textColor}">${prize.rank}</div>
+      <div class="inventory-name">
+        <strong>${prize.title}</strong>
+        <span>${prize.note || (prize.remaining === null ? "不足分はこちらで吸収" : "本数固定")}</span>
+      </div>
+      <div class="count">${prize.remaining === null ? "<span>参加賞</span>∞" : prize.remaining === 0 ? "終了" : `<span>残り</span>${prize.remaining}<span>本</span>`}</div>
+    `;
+    inventoryList.appendChild(item);
+  });
+  remainingTotal.textContent = `固定景品 合計 ${finiteTotal}本`;
+}
+
+function renderHistory() {
+  historyList.innerHTML = "";
+  if (!state.history.length) {
+    const empty = document.createElement("li");
+    empty.textContent = "まだ履歴はありません";
+    historyList.appendChild(empty);
+    return;
+  }
+
+  state.history.slice().reverse().forEach((entry, index) => {
+    const item = document.createElement("li");
+    item.innerHTML = `<strong>${state.history.length - index}. ${entry.rank}</strong><br>${entry.title}<br><small>${entry.time}</small>`;
+    historyList.appendChild(item);
+  });
+}
+
+function renderAll() {
+  drawWheel();
+  renderInventory();
+  renderHistory();
+}
+
+async function unlockAudio() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioContext.state === "suspended") {
+    await audioContext.resume();
+  }
+  playChime(440, 0.08, "sine", 0.035);
+  soundButton.textContent = "音声オン";
+}
+
+function startSpinSound() {
+  if (!audioContext) return;
+  stopSpinSound();
+  const gain = audioContext.createGain();
+  gain.gain.value = 0.001;
+  gain.connect(audioContext.destination);
+
+  const tick = () => {
+    if (!spinNoise) return;
+    const osc = audioContext.createOscillator();
+    const knock = audioContext.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(130 + Math.random() * 90, audioContext.currentTime);
+    knock.gain.setValueAtTime(0.0001, audioContext.currentTime);
+    knock.gain.exponentialRampToValueAtTime(0.12, audioContext.currentTime + 0.008);
+    knock.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.055);
+    osc.connect(knock);
+    knock.connect(gain);
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.06);
+    spinNoise.timer = window.setTimeout(tick, 58 + Math.random() * 36);
+  };
+
+  spinNoise = { gain, timer: null };
+  gain.gain.exponentialRampToValueAtTime(0.85, audioContext.currentTime + 0.2);
+  tick();
+  startSpinMusic();
+}
+
+function stopSpinSound() {
+  if (!spinNoise) return;
+  window.clearTimeout(spinNoise.timer);
+  if (audioContext) {
+    spinNoise.gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.25);
+    setTimeout(() => spinNoise?.gain.disconnect(), 320);
+  }
+  spinNoise = null;
+  stopSpinMusic();
+}
+
+function startSpinMusic() {
+  if (!audioContext) return;
+  stopSpinMusic();
+  const notes = [523, 659, 784, 659, 587, 698, 880, 698];
+  const gain = audioContext.createGain();
+  gain.gain.value = 0.0001;
+  gain.connect(audioContext.destination);
+  let step = 0;
+  const playStep = () => {
+    if (!spinMusic) return;
+    const freq = notes[step % notes.length];
+    const osc = audioContext.createOscillator();
+    const noteGain = audioContext.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+    noteGain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+    noteGain.gain.exponentialRampToValueAtTime(0.045, audioContext.currentTime + 0.02);
+    noteGain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.16);
+    osc.connect(noteGain);
+    noteGain.connect(gain);
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.18);
+    step += 1;
+    spinMusic.timer = window.setTimeout(playStep, 190);
+  };
+  spinMusic = { gain, timer: null };
+  gain.gain.exponentialRampToValueAtTime(1, audioContext.currentTime + 0.25);
+  playStep();
+}
+
+function stopSpinMusic() {
+  if (!spinMusic) return;
+  window.clearTimeout(spinMusic.timer);
+  if (audioContext) {
+    spinMusic.gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.2);
+    setTimeout(() => spinMusic?.gain.disconnect(), 260);
+  }
+  spinMusic = null;
+}
+
+function playChime(freq, duration, type = "sine", volume = 0.08, delay = 0) {
+  if (!audioContext) return;
+  const start = audioContext.currentTime + delay;
+  const osc = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, start);
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(volume, start + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  osc.connect(gain);
+  gain.connect(audioContext.destination);
+  osc.start(start);
+  osc.stop(start + duration + 0.03);
+}
+
+function playWinSound(effect) {
+  if (effect === "special") {
+    playFanfare([392, 523, 659, 784, 1046, 1318, 1568, 2093], 0.16, 0.52, 0.14);
+    playChord([196, 247, 294, 392], 1.35, 0.1, 0.16);
+    playChord([523, 659, 784, 1046], 1.05, 0.09, 0.95);
+    playDrumRoll(1.45, 0.13);
+    return;
+  }
+  if (effect === "first") {
+    playFanfare([523, 659, 784, 988, 1318, 1568], 0.14, 0.38, 0.11);
+    playChord([262, 330, 392, 523], 0.9, 0.075, 0.72);
+    playDrumRoll(0.85, 0.09);
+    return;
+  }
+  if (effect === "color") {
+    playFanfare([659, 784, 988, 1174, 1568], 0.11, 0.26, 0.085);
+    playChord([392, 494, 659], 0.56, 0.055, 0.42);
+    return;
+  }
+  [880, 1174, 1568, 1318].forEach((freq, i) => playChime(freq, 0.2, "sine", 0.075, i * 0.09));
+}
+
+function playFanfare(notes, step, duration, volume) {
+  notes.forEach((freq, i) => {
+    const type = i % 2 === 0 ? "triangle" : "sine";
+    playChime(freq, duration, type, volume, i * step);
+    if (i >= notes.length - 2) {
+      playChime(freq * 1.5, duration * 0.75, "sine", volume * 0.45, i * step + 0.04);
+    }
+  });
+}
+
+function playChord(notes, duration, volume, delay = 0) {
+  notes.forEach((freq) => playChime(freq, duration, "triangle", volume, delay));
+}
+
+function playDrumRoll(duration, volume) {
+  if (!audioContext) return;
+  const endAt = audioContext.currentTime + duration;
+  const hit = () => {
+    if (!audioContext || audioContext.currentTime > endAt) return;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(95 + Math.random() * 70, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(volume, audioContext.currentTime + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.045);
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.055);
+    window.setTimeout(hit, 58);
+  };
+  hit();
+}
+
+function loadVoices() {
+  const voices = window.speechSynthesis?.getVoices?.() || [];
+  preferredVoice = voices.find((voice) => voice.lang === "ja-JP" && /female|kyoko|otoya|google/i.test(voice.name))
+    || voices.find((voice) => voice.lang === "ja-JP")
+    || voices.find((voice) => voice.lang.startsWith("ja"));
+}
+
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  loadVoices();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "ja-JP";
+  utterance.rate = 0.95;
+  utterance.pitch = 1.12;
+  if (preferredVoice) utterance.voice = preferredVoice;
+  window.speechSynthesis.speak(utterance);
+}
+
+function celebrate(effect) {
+  celebrationLayer.innerHTML = "";
+  if (effect === "special") {
+    const flash = document.createElement("div");
+    flash.className = "flash";
+    celebrationLayer.appendChild(flash);
+  }
+  const palette = effect === "special"
+    ? ["#ffd766", "#d9a62e", "#fff2a8", "#ffffff"]
+    : effect === "first"
+      ? ["#ffd766", "#e72735", "#ffffff", "#ffb800"]
+      : effect === "color"
+        ? ["#e72735", "#ffd766", "#37a2ff", "#24b36b", "#ffffff"]
+        : ["#ffd766", "#ffffff", "#e72735"];
+  const amount = effect === "special" ? 170 : effect === "first" ? 110 : effect === "color" ? 76 : 34;
+  for (let i = 0; i < amount; i += 1) {
+    const piece = document.createElement("span");
+    piece.className = "confetti";
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = palette[Math.floor(Math.random() * palette.length)];
+    piece.style.setProperty("--drift", `${Math.random() * 180 - 90}px`);
+    piece.style.setProperty("--duration", `${1200 + Math.random() * 1900}ms`);
+    celebrationLayer.appendChild(piece);
+  }
+  window.setTimeout(() => {
+    celebrationLayer.innerHTML = "";
+  }, 3600);
+}
+
+function findSegmentIndexForPrize(segments, prizeId) {
+  const matching = segments.map((segment, index) => segment.id === prizeId ? index : -1).filter((index) => index >= 0);
+  return matching[Math.floor(Math.random() * matching.length)] ?? 0;
+}
+
+async function spin() {
+  if (spinning) return;
+  await unlockAudio();
+  drawWheel();
+  const prize = choosePrize();
+  const segments = wheelSegments();
+  const index = findSegmentIndexForPrize(segments, prize.id);
+  const segmentDegree = 360 / segments.length;
+  const segmentCenter = index * segmentDegree + segmentDegree / 2;
+  const current = ((rotation % 360) + 360) % 360;
+  const desired = (POINTER_DEGREE - segmentCenter + 360) % 360;
+  const extraTurns = 6 + Math.floor(Math.random() * 3);
+  const delta = extraTurns * 360 + ((desired - current + 360) % 360);
+
+  spinning = true;
+  spinButton.disabled = true;
+  spinButton.textContent = "抽選中";
+  resultTitle.textContent = "回転中...";
+  resultPrize.textContent = "ガラガラ抽選をお楽しみください";
+  startSpinSound();
+  rotation += delta;
+  canvas.style.transform = `rotate(${rotation}deg)`;
+
+  window.setTimeout(() => {
+    finishSpin(prize);
+  }, 4900);
+}
+
+function finishSpin(prize) {
+  stopSpinSound();
+  if (typeof prize.remaining === "number" && prize.remaining > 0) {
+    prize.remaining -= 1;
+  }
+  const now = new Date();
+  state.history.push({
+    id: prize.id,
+    rank: prize.rank,
+    title: prize.title,
+    time: now.toLocaleString("ja-JP", { dateStyle: "short", timeStyle: "medium" }),
+  });
+  saveState();
+  resultTitle.textContent = prize.rank;
+  resultPrize.textContent = prize.title;
+  resultPanel.style.borderColor = prize.id === "special" ? "#d9a62e" : "rgba(217, 166, 46, 0.55)";
+  playWinSound(prize.effect);
+  celebrate(prize.effect);
+  speak(prize.speech);
+  spinning = false;
+  spinButton.disabled = false;
+  spinButton.textContent = "抽選スタート";
+  renderInventory();
+  renderHistory();
+}
+
+function resetAll() {
+  const ok = window.confirm("景品残数と抽選履歴を初期状態に戻します。よろしいですか？");
+  if (!ok) return;
+  state = createInitialState();
+  saveState();
+  resultTitle.textContent = "リセットしました";
+  resultPrize.textContent = "抽選を開始できます";
+  renderAll();
+}
+
+function clearHistory() {
+  const ok = window.confirm("抽選履歴だけを削除します。景品残数はそのままです。");
+  if (!ok) return;
+  state.history = [];
+  saveState();
+  renderHistory();
+}
+
+async function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    await document.documentElement.requestFullscreen?.();
+  } else {
+    await document.exitFullscreen?.();
+  }
+}
+
+spinButton.addEventListener("click", spin);
+resetButton.addEventListener("click", resetAll);
+soundButton.addEventListener("click", unlockAudio);
+fullscreenButton.addEventListener("click", toggleFullscreen);
+clearHistoryButton.addEventListener("click", clearHistory);
+
+if ("speechSynthesis" in window) {
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+renderAll();
+
+  </script>
+</body>
+</html>
